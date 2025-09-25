@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<!--
+Fenix Mastering Tool (Community Edition)
+Copyright (C) 2025 <Your Name or Org>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details. 
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<title>Fenixs Browser Mastering Tool Community Edition</title>
+<meta charset="utf-8"/>
+<style>
+    body { font-family: Arial, sans-serif; background: #111; color: #eee;  padding: 20px; }
+    .controls-wrap { display:flex; align-items:stretch; gap:14px; margin: 20px auto; max-width: 800px; }
+    .controls { flex:1; }
+    label { display: block; margin: 10px 0 5px; }
+    .inline { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    input[type=range] { width: 100%; }
+    button { margin: 10px; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; }
+    #playBtn { background: #4caf50; color: white; }
+    #stopBtn { background: #f44336; color: white; }
+    #toggleBtn { background: #ff9800; color: white; }
+    #downloadBtn { background: #2196f3; color: white; }
+    #downloadFlacBtn { background: #10b981; color: #0b1220; }
+
+    /* upload button styling (UNCHANGED) */
+    input[type="file"] { display: none; }
+    label[for="fileInput"] {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #2196f3;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .row { display:flex; gap:14px; align-items:center; }
+    .row > * { flex:1; }
+    .hint { color:#bbb; font-size:12px; margin-top:4px; }
+    .val { font-size:12px; color:#9fc5ff; margin-left:8px; min-width:60px; text-align:right; }
+    select { background:#1e293b; color:#fff; border:1px solid #334155; border-radius:8px; padding:8px 10px; }
+
+    /* Meter */
+    .meter-panel { width: 76px; display:flex; flex-direction:column; align-items:center; }
+    #meterCanvas { width: 76px; height: 100%; background: #0b1220; border-radius: 8px; }
+    .meter-label { font-size: 12px; color:#aeb9d8; margin-top:6px; }
+  </style>
+<style>
+
+  /* === Fenix Header (Open Source V3) === */
+  :root{
+    --top-banner-h: 28px;   /* thin black strip */
+    --main-header-h: 56px;  /* nav bar */
+  }
+  .fenix-top-banner {
+  position: fixed; inset: 0 auto auto 0;  height: var(--top-banner-h);  background: #000;  color: #fff;  width: 100%;  z-index: 80;  display: flex;  align-items: center;  gap: 10px;  padding: 0 12px;  font-size: 12px;  letter-spacing: .2px;  opacity: .96; }
+
+.fenix-top-banner a:link, .fenix-top-banner a:visited,
+.fenix-top-banner a:hover,
+.fenix-top-banner a:active {
+  text-decoration: none;
+}
+
+.fenix-top-banner .pill {
+  background: #111; border: 1px solid #2a2a2a;  padding: 2px 8px;  border-radius: 999px;  font-weight: 600;  color: #ddd;
+}
+
+/* First link: dark orange */
+.fenix-top-banner a:first-child {
+  color: #e67e22; 
+}
+
+  .fenix-header{
+    position: fixed; top: var(--top-banner-h); left:0; right:0; z-index: 80;
+    background:#0a0a0a; border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .fenix-header .header-inner{
+    max-width:1200px; margin:0 auto; height: var(--main-header-h);
+    display:flex; align-items:center; justify-content:space-between; padding:0 12px;
+  }
+  .fenix-header .brand{
+    display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.3px;
+    color:#eaeaea; font-size:15px;
+  }
+  .fenix-header nav a{
+    color:#eaeaea; text-decoration:none; margin-left:16px; font-weight:500; font-size:14px;
+  }
+  .fenix-header nav a:hover{ text-decoration:underline; }
+
+  /* Nudge the fixed preview down below the header stack */
+  :root{ --sticky-top: calc(var(--top-banner-h) + var(--main-header-h) + 8px); }
+
+</style><style>
+/* Fixed header spacing */
+:root{ --top-banner-h: 28px; --main-header-h: 56px; }
+body{ padding-top: calc(var(--top-banner-h) + var(--main-header-h) + 16px) !important; }
+</style></head>
+<body><div class="fenix-top-banner">
+<span><a href="https://fenixstudio.org/">FenixStudio.org</a></span>
+<span class="pill"><a href="https://github.com/FenixStudioAU">Fenix Github</a></span>
+<span class="pill"><a href="https://www.buymeacoffee.com/aihitfactory" style="color: #FFDD00; text-decoration: none; font-family: Cookie, cursive; font-size: 11px;">Buy me a coffee</a></span>
+</div><header class="fenix-header" role="banner">
+<div class="header-inner">
+<div class="brand">Fenix Mastering Tool - Open Source Edition</div>
+<nav aria-label="Primary">
+<a href="https://fenixstudio.org/">Home</a>
+<a href="https://visualizer.fenixstudio.org/">Visualizer</a>
+<a href="#">Tools</a>
+<a href="#">Help</a>
+</nav>
+</div>
+</header>
+<div class="controls-wrap">
+<div class="controls" id="controlsBox">
+<!-- Upload (UNCHANGED) -->
+<label for="fileInput">Upload Audio</label>
+<input accept="audio/*" id="fileInput" type="file"/>
+<!-- PRESETS -->
+<div class="inline" style="margin-bottom:8px">
+<div style="flex:1">
+<label style="margin:0 0 6px">Preset</label>
+<select id="presetSelect" style="width:100%">
+<option value="flat">Flat (Reset)</option>
+<option value="rock">Rock</option>
+<option value="metal">Metal</option>
+<option value="pop">Pop</option>
+<option value="jazz">Jazz</option>
+<option value="edm">EDM</option>
+</select>
+</div>
+<button id="applyPresetBtn" style="margin:0; flex:0 0 auto">Apply Preset</button>
+</div>
+<!-- /PRESETS -->
+<label class="inline">Bass (Low Shelf) <span class="val" id="bassVal">0 dB</span></label>
+<input id="bass" max="30" min="-30" type="range" value="0"/>
+<label class="inline">Mids (Peaking EQ) <span class="val" id="midsVal">0 dB</span></label>
+<input id="mids" max="30" min="-30" type="range" value="0"/>
+<label class="inline">Brightness (High Shelf) <span class="val" id="trebleVal">0 dB</span></label>
+<input id="treble" max="30" min="-30" type="range" value="0"/>
+<label class="inline">Stereo Width <span class="val" id="stereoVal">100</span></label>
+<input id="stereo" max="200" min="0" type="range" value="100"/>
+<!-- Loudness + Limiter + Fades -->
+<div style="margin-top:18px;border-top:1px solid #333;padding-top:12px"></div>
+<div class="row">
+<label style="flex:0 0 160px">
+<input checked="" id="enableLoudness" type="checkbox"/> Enable Loudness Target
+        </label>
+<div>
+<label class="inline" style="margin-top:0">Target Loudness (dBFS) <span class="val" id="targetLoudnessVal">-14 dBFS</span></label>
+<input id="targetLoudness" max="-8" min="-30" step="0.5" type="range" value="-14"/>
+<div class="hint">Normalizes toward the target using a quick RMS estimate.</div>
+</div>
+</div>
+<label class="inline">Limiter Ceiling (dBFS) <span class="val" id="limiterCeilingVal">-1 dBFS</span></label>
+<input id="limiterCeiling" max="-0.1" min="-12" step="0.1" type="range" value="-1"/>
+<div class="row">
+<div>
+<label class="inline">Fade In (ms) <span class="val" id="fadeInVal">0 ms</span></label>
+<input id="fadeInMs" max="10000" min="0" step="10" type="range" value="0"/>
+</div>
+<div>
+<label class="inline">Fade Out (ms) <span class="val" id="fadeOutVal">0 ms</span></label>
+<input id="fadeOutMs" max="10000" min="0" step="10" type="range" value="0"/>
+</div>
+</div>
+<div style="margin-top:12px">
+<button id="playBtn">▶ Play</button>
+<button id="stopBtn">⏹ Stop</button>
+<button id="toggleBtn">🔄 Switch: Mastered</button>
+<button id="downloadBtn">💾 Download WAV</button>
+</div>
+</div>
+<!-- Level Meter only -->
+<div class="meter-panel">
+<canvas id="meterCanvas"></canvas>
+<div class="meter-label">Level (L/R)</div>
+</div>
+</div>
+<!-- FLAC encoder (used only for FLAC export) -->
+<script src="https://cdn.jsdelivr.net/npm/libflacjs@5.4.0/dist/libflac4-1.3.2.min.js"></script>
+<script>
+    // === working vars ===
+    let audioCtx, sourceOriginal, sourceMastered;
+    let bassEQ, midEQ, trebleEQ, stereoGain;
+    let preGain, limiter;               // loudness pre-gain & limiter
+    let masterOutGain, originalOutGain; // used for live switching and fades
+    let audioBuffer;
+    let isPlaying = false;
+    let playStartTime = 0;
+    let pauseOffset = 0;
+    let mode = "mastered"; // "mastered" or "original"
+    let fileRmsDb = null;  // cached RMS in dBFS for loudness calc
+    let uploadedNameBase = ""; // filename base
+
+    const byId = (id) => document.getElementById(id);
+
+    // === PRESETS ===
+    const PRESETS = {
+      flat:  { bass:0, mids:0, treble:0, stereo:100, target:-14, ceiling:-1,   fadeIn:0,   fadeOut:0,   enable:true },
+      rock:  { bass:3, mids:2, treble:4, stereo:110, target:-12, ceiling:-0.8, fadeIn:200, fadeOut:400, enable:true },
+      metal: { bass:5, mids:-1, treble:5, stereo:105, target:-10, ceiling:-0.6, fadeIn:100, fadeOut:300, enable:true },
+      pop:   { bass:2, mids:1, treble:3, stereo:120, target:-12, ceiling:-0.8, fadeIn:150, fadeOut:300, enable:true },
+      jazz:  { bass:1, mids:2, treble:1, stereo:100, target:-16, ceiling:-1.5, fadeIn:300, fadeOut:600, enable:true },
+      edm:   { bass:6, mids:-2, treble:4, stereo:130, target:-9,  ceiling:-0.5, fadeIn:100, fadeOut:200, enable:true },
+    };
+
+    function refreshReadouts() {
+      byId('bassVal').textContent = `${byId('bass').value} dB`;
+      byId('midsVal').textContent = `${byId('mids').value} dB`;
+      byId('trebleVal').textContent = `${byId('treble').value} dB`;
+      byId('stereoVal').textContent = `${byId('stereo').value}`;
+      byId('targetLoudnessVal').textContent = `${byId('targetLoudness').value} dBFS`;
+      byId('limiterCeilingVal').textContent = `${byId('limiterCeiling').value} dBFS`;
+      byId('fadeInVal').textContent = `${byId('fadeInMs').value} ms`;
+      byId('fadeOutVal').textContent = `${byId('fadeOutMs').value} ms`;
+    }
+
+    function applyPreset(name) {
+      const p = PRESETS[name] || PRESETS.flat;
+      byId('bass').value = p.bass;
+      byId('mids').value = p.mids;
+      byId('treble').value = p.treble;
+      byId('stereo').value = p.stereo;
+      byId('targetLoudness').value = p.target;
+      byId('limiterCeiling').value = p.ceiling;
+      byId('fadeInMs').value = p.fadeIn;
+      byId('fadeOutMs').value = p.fadeOut;
+      byId('enableLoudness').checked = !!p.enable;
+      refreshReadouts();
+      liveApplyParams(); // live update if playing
+    }
+
+    byId('applyPresetBtn').addEventListener('click', () => {
+      applyPreset(byId('presetSelect').value);
+    });
+
+    // === Upload (UNCHANGED) ===
+    byId('fileInput').addEventListener('change', handleFile);
+
+    async function handleFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      uploadedNameBase = file.name.replace(/\.[^/.]+$/, "");
+      const arrayBuffer = await file.arrayBuffer();
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+      fileRmsDb = estimateBufferRmsDb(audioBuffer); // pre-compute RMS
+      alert("File loaded! Ready to play or export.");
+    }
+
+    // === Utility ===
+    function dbToGain(db) { return Math.pow(10, db / 20); }
+
+    function estimateBufferRmsDb(buffer) {
+      const ch0 = buffer.getChannelData(0);
+      let sumSq = 0;
+      const step = Math.max(1, Math.floor(ch0.length / 500000)); // decimate for speed
+      let n = 0;
+      for (let i = 0; i < ch0.length; i += step) { const s = ch0[i]; sumSq += s * s; n++; }
+      const rms = Math.sqrt(sumSq / Math.max(1, n));
+      return 20 * Math.log10(Math.max(rms, 1e-12));
+    }
+
+    function createLimiter(ctx, ceilingDb) {
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = ceilingDb; // dB
+      comp.knee.value = 0;              // hard knee-ish
+      comp.ratio.value = 20;            // high ratio -> limiting
+      comp.attack.value = 0.003;        // fast
+      comp.release.value = 0.1;         // fairly quick
+      return comp;
+    }
+
+    function buildMasteredGraph(ctx, destination) {
+      const src = ctx.createBufferSource();
+      src.buffer = audioBuffer;
+
+      // EQ
+      bassEQ = ctx.createBiquadFilter();
+      bassEQ.type = "lowshelf";
+      bassEQ.frequency.value = 200;
+      bassEQ.gain.value = parseFloat(byId('bass').value);
+
+      midEQ = ctx.createBiquadFilter();
+      midEQ.type = "peaking";
+      midEQ.frequency.value = 1200;
+      midEQ.Q.value = 1;
+      midEQ.gain.value = parseFloat(byId('mids').value);
+
+      trebleEQ = ctx.createBiquadFilter();
+      trebleEQ.type = "highshelf";
+      trebleEQ.frequency.value = 8000;
+      trebleEQ.gain.value = parseFloat(byId('treble').value);
+
+      // "Stereo width" acts as a simple gain here
+      stereoGain = ctx.createGain();
+      stereoGain.gain.value = parseFloat(byId('stereo').value) / 100;
+
+      // Loudness pre-gain
+      preGain = ctx.createGain();
+      const enableLoud = byId('enableLoudness').checked;
+      const targetDb = parseFloat(byId('targetLoudness').value);
+      let loudGain = 1;
+      if (enableLoud && fileRmsDb !== null) {
+        const neededDb = targetDb - fileRmsDb;
+        loudGain = dbToGain(neededDb);
+      }
+      preGain.gain.value = loudGain;
+
+      // Limiter
+      limiter = createLimiter(ctx, parseFloat(byId('limiterCeiling').value));
+
+      // Chain
+      src.connect(bassEQ);
+      bassEQ.connect(midEQ);
+      midEQ.connect(trebleEQ);
+      trebleEQ.connect(stereoGain);
+      stereoGain.connect(preGain);
+      preGain.connect(limiter);
+      limiter.connect(destination);
+
+      return { src };
+    }
+
+    function buildOriginalGraph(ctx, destination) {
+      const src = ctx.createBufferSource();
+      src.buffer = audioBuffer;
+      src.connect(destination);
+      return { src };
+    }
+
+    function scheduleFades(ctx, outGain, offsetSec = 0) {
+      const fadeInMs = parseFloat(byId('fadeInMs').value) || 0;
+      const fadeOutMs = parseFloat(byId('fadeOutMs').value) || 0;
+      const fadeInSec = fadeInMs / 1000;
+      const fadeOutSec = fadeOutMs / 1000;
+
+      const now = ctx.currentTime;
+      const totalLeft = Math.max(0, audioBuffer.duration - offsetSec);
+
+      outGain.gain.cancelScheduledValues(0);
+      outGain.gain.setValueAtTime(0, now);
+      if (fadeInSec > 0) outGain.gain.linearRampToValueAtTime(1, now + fadeInSec);
+      else outGain.gain.setValueAtTime(1, now);
+
+      if (fadeOutSec > 0 && totalLeft > fadeOutSec) {
+        const startDown = now + (totalLeft - fadeOutSec);
+        outGain.gain.setValueAtTime(1, startDown);
+        outGain.gain.linearRampToValueAtTime(0, startDown + fadeOutSec);
+      }
+    }
+
+    // ==== LEVEL METER (no swap) ====
+    let analyserL, analyserR, meterBus, meterAnimId = 0;
+    let meterSplit; // split meter bus into L/R
+    const meterCanvas = byId('meterCanvas');
+    const controlsBox = byId('controlsBox');
+    const mCtx = meterCanvas.getContext('2d');
+
+    function resizeMeter() {
+      const h = controlsBox.getBoundingClientRect().height;
+      meterCanvas.style.height = h + 'px';
+      const dpr = window.devicePixelRatio || 1;
+      meterCanvas.width = Math.floor(76 * dpr);
+      meterCanvas.height = Math.floor(h * dpr);
+      mCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawMeter({l:-120,r:-120},{l:-120,r:-120}, true);
+    }
+    window.addEventListener('resize', resizeMeter);
+    requestAnimationFrame(resizeMeter);
+
+    function ensureAnalyser() {
+      if (!audioCtx) return;
+      if (!analyserL) { analyserL = audioCtx.createAnalyser(); analyserL.fftSize = 2048; }
+      if (!analyserR) { analyserR = audioCtx.createAnalyser(); analyserR.fftSize = 2048; }
+      if (!meterBus) { meterBus = audioCtx.createGain(); meterBus.gain.value = 1; }
+      if (!meterSplit) {
+        meterSplit = audioCtx.createChannelSplitter(2);
+        meterBus.connect(meterSplit);
+        meterSplit.connect(analyserL, 0);
+        meterSplit.connect(analyserR, 1);
+      }
+    }
+
+    function startMeter() {
+      if (!analyserL || !analyserR) return;
+      cancelAnimationFrame(meterAnimId);
+      const bufL = new Float32Array(analyserL.fftSize);
+      const bufR = new Float32Array(analyserR.fftSize);
+
+      const loop = () => {
+        analyserL.getFloatTimeDomainData(bufL);
+        analyserR.getFloatTimeDomainData(bufR);
+
+        const stats = (buf) => {
+          let sum=0, peak=0; for (let i=0;i<buf.length;i++){ const s=buf[i]; sum+=s*s; const a=Math.abs(s); if(a>peak) peak=a; }
+          const rms = Math.sqrt(sum / buf.length);
+          return { rmsDb: 20*Math.log10(rms||1e-8), peakDb: 20*Math.log10(peak||1e-8) };
+        };
+        const L = stats(bufL); const R = stats(bufR);
+        drawMeter({l:L.rmsDb, r:R.rmsDb}, {l:L.peakDb, r:R.peakDb});
+        meterAnimId = requestAnimationFrame(loop);
+      };
+      meterAnimId = requestAnimationFrame(loop);
+    }
+
+    function stopMeter() {
+      cancelAnimationFrame(meterAnimId);
+      drawMeter({l:-120,r:-120},{l:-120,r:-120}, true);
+    }
+
+    // Draw two vertical bars (L & R)
+    function drawMeter(rms, peak, clearOnly=false) {
+      const w = meterCanvas.width / (window.devicePixelRatio||1);
+      const h = meterCanvas.height / (window.devicePixelRatio||1);
+      mCtx.clearRect(0,0,w,h);
+      mCtx.fillStyle = '#0b1220';
+      mCtx.fillRect(0,0,w,h);
+
+      const minDb = -60, maxDb = 0;
+      const barW = (w-20)/2; // margins
+      const xL = 6, xR = 14 + barW;
+
+      function dbToY(db){ const clamped=Math.max(minDb,Math.min(maxDb,db)); const t=(clamped-minDb)/(maxDb-minDb); return h*(1-t); }
+      const grad = mCtx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0.00, '#e11d48');
+      grad.addColorStop(0.35, '#f59e0b');
+      grad.addColorStop(0.80, '#22c55e');
+
+      // Draw RMS bars
+      mCtx.fillStyle = grad;
+      const yL = dbToY(rms.l); mCtx.fillRect(xL, yL, barW, h - yL);
+      const yR = dbToY(rms.r); mCtx.fillRect(xR, yR, barW, h - yR);
+
+      // 0 dBFS line
+      mCtx.fillStyle = '#94a3b8'; mCtx.fillRect(4, 0, w-8, 2);
+
+      // Peak markers
+      const yLp = dbToY(peak.l); const yRp = dbToY(peak.r);
+      mCtx.fillStyle = '#fff';
+      mCtx.fillRect(xL, yLp-1, barW, 2);
+      mCtx.fillRect(xR, yRp-1, barW, 2);
+
+      // Clip lights (>= -0.1 dBFS)
+      const clipL = peak.l >= -0.1; const clipR = peak.r >= -0.1;
+      const lightH = 6; const lightW = barW; const pad = 2;
+      mCtx.fillStyle = clipL ? '#ef4444' : '#334155';
+      mCtx.fillRect(xL, pad, lightW, lightH);
+      mCtx.fillStyle = clipR ? '#ef4444' : '#334155';
+      mCtx.fillRect(xR, pad, lightW, lightH);
+
+      // Tick marks
+      mCtx.fillStyle = '#64748b'; mCtx.font = '10px Arial';
+      [-12,-24,-36,-48].forEach(d=>{ const yy=dbToY(d); mCtx.fillRect(4, yy, w-8, 1); });
+
+      // L/R labels at bottom
+      mCtx.fillStyle = '#aeb9d8'; mCtx.font = '11px Arial';
+      mCtx.fillText('L', xL + barW/2 - 4, h-6);
+      mCtx.fillText('R', xR + barW/2 - 4, h-6);
+    }
+    // ==== /METER ====
+
+    async function playAudio() {
+      if (!audioBuffer) return alert("Upload an audio file first!");
+      if (audioCtx && audioCtx.state === 'suspended') { try { await audioCtx.resume(); } catch(e){} }
+      if (isPlaying) return;
+
+      isPlaying = true;
+      playStartTime = audioCtx.currentTime - pauseOffset;
+
+      masterOutGain = audioCtx.createGain();
+      originalOutGain = audioCtx.createGain();
+
+      // Build chains up to out gains
+      const m = buildMasteredGraph(audioCtx, masterOutGain);
+      sourceMastered = m.src;
+      scheduleFades(audioCtx, masterOutGain, pauseOffset);
+      sourceMastered.start(0, pauseOffset);
+
+      const o = buildOriginalGraph(audioCtx, originalOutGain);
+      sourceOriginal = o.src;
+      sourceOriginal.start(0, pauseOffset);
+
+      // Connect outputs to speakers and meter
+      ensureAnalyser();
+      try { masterOutGain.connect(audioCtx.destination); } catch(e){}
+      try { originalOutGain.connect(audioCtx.destination); } catch(e){}
+      try { masterOutGain.connect(meterBus); } catch(e){}
+      try { originalOutGain.connect(meterBus); } catch(e){}
+
+      // A/B default to mastered
+      masterOutGain.gain.value = 1;
+      originalOutGain.gain.value = 0;
+      mode = "mastered";
+      byId("toggleBtn").innerText = "🔄 Switch: Mastered";
+
+      resizeMeter();
+      startMeter();
+    }
+
+    function stopAudio() {
+      if (sourceMastered) { try { sourceMastered.stop(); } catch(e){} sourceMastered = null; }
+      if (sourceOriginal) { try { sourceOriginal.stop(); } catch(e){} sourceOriginal = null; }
+      try { if (masterOutGain) masterOutGain.disconnect(); } catch (e) {}
+      try { if (originalOutGain) originalOutGain.disconnect(); } catch (e) {}
+
+      isPlaying = false;
+      pauseOffset = audioCtx ? (audioCtx.currentTime - playStartTime) : 0;
+      stopMeter();
+    }
+
+    // Live, click-free A/B with short crossfade
+    function toggleMode() {
+      if (!isPlaying) return;
+      if (!masterOutGain || !originalOutGain) return;
+
+      const now = audioCtx.currentTime;
+      const fade = 0.03; // ~30ms
+
+      masterOutGain.gain.cancelScheduledValues(now);
+      originalOutGain.gain.cancelScheduledValues(now);
+
+      if (mode === "mastered") {
+        masterOutGain.gain.linearRampToValueAtTime(0, now + fade);
+        originalOutGain.gain.linearRampToValueAtTime(1, now + fade);
+        mode = "original";
+        byId("toggleBtn").innerText = "🔄 Switch: Original";
+      } else {
+        originalOutGain.gain.linearRampToValueAtTime(0, now + fade);
+        masterOutGain.gain.linearRampToValueAtTime(1, now + fade);
+        mode = "mastered";
+        byId("toggleBtn").innerText = "🔄 Switch: Mastered";
+      }
+    }
+
+    // === Live param updates while playing (EQ/Width/Loudness/Limiter) ===
+    function liveApplyParams() {
+      if (!isPlaying) return;
+      if (bassEQ)   bassEQ.gain.value   = parseFloat(byId('bass').value);
+      if (midEQ)    midEQ.gain.value    = parseFloat(byId('mids').value);
+      if (trebleEQ) trebleEQ.gain.value = parseFloat(byId('treble').value);
+      if (stereoGain) stereoGain.gain.value = parseFloat(byId('stereo').value) / 100;
+
+      if (preGain) {
+        const enableLoud = byId('enableLoudness').checked;
+        const targetDb = parseFloat(byId('targetLoudness').value);
+        let loudGain = 1;
+        if (enableLoud && fileRmsDb !== null) {
+          const neededDb = targetDb - fileRmsDb;
+          loudGain = dbToGain(neededDb);
+        }
+        preGain.gain.setValueAtTime(loudGain, audioCtx.currentTime);
+      }
+      if (limiter) {
+        limiter.threshold.value = parseFloat(byId('limiterCeiling').value);
+      }
+    }
+
+    ['bass','mids','treble','stereo','targetLoudness','limiterCeiling','enableLoudness']
+      .forEach(id => byId(id).addEventListener('input', () => { refreshReadouts(); liveApplyParams(); }));
+
+    // === Export (shared render) ===
+    async function renderMasteredToBuffer() {
+      if (!audioBuffer) { alert("Upload an audio file first!"); throw new Error("no audio"); }
+
+      const offlineCtx = new OfflineAudioContext(
+        audioBuffer.numberOfChannels,
+        audioBuffer.length,
+        audioBuffer.sampleRate
+      );
+
+      const exportOut = offlineCtx.createGain();
+      const { src } = buildMasteredGraph(offlineCtx, exportOut);
+
+      // Fades post-processing
+      const postGain = offlineCtx.createGain();
+      exportOut.connect(postGain).connect(offlineCtx.destination);
+
+      const fadeInSec = (parseFloat(byId('fadeInMs').value) || 0) / 1000;
+      const fadeOutSec = (parseFloat(byId('fadeOutMs').value) || 0) / 1000;
+      postGain.gain.cancelScheduledValues(0);
+      postGain.gain.setValueAtTime(0, 0);
+      if (fadeInSec > 0) postGain.gain.linearRampToValueAtTime(1, fadeInSec);
+      else postGain.gain.setValueAtTime(1, 0);
+      if (fadeOutSec > 0 && audioBuffer.duration > fadeOutSec) {
+        const startDown = audioBuffer.duration - fadeOutSec;
+        postGain.gain.setValueAtTime(1, startDown);
+        postGain.gain.linearRampToValueAtTime(0, audioBuffer.duration);
+      }
+
+      src.start(0);
+      return offlineCtx.startRendering();
+    }
+
+    async function exportWav() {
+      if (!audioBuffer) return alert("Upload an audio file first!");
+      const renderedBuffer = await renderMasteredToBuffer();
+      const wavBlob = bufferToWav(renderedBuffer);
+
+      const url = URL.createObjectURL(wavBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = (uploadedNameBase ? (uploadedNameBase + " (FenixMastered).wav") : "mastered (FenixMastered).wav");
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function exportFlac() {
+      if (!audioBuffer) return alert("Upload an audio file first!");
+      const renderedBuffer = await renderMasteredToBuffer();
+      const flacBlob = await bufferToFlac(renderedBuffer);
+      if (flacBlob) {
+        const url = URL.createObjectURL(flacBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = (uploadedNameBase ? (uploadedNameBase + " (FenixMastered).flac") : "mastered (FenixMastered).flac");
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        // fallback to WAV
+        const wavBlob = bufferToWav(renderedBuffer);
+        const url = URL.createObjectURL(wavBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = (uploadedNameBase ? (uploadedNameBase + " (FenixMastered).wav") : "mastered (FenixMastered).wav");
+        a.click();
+        URL.revokeObjectURL(url);
+        alert("FLAC encoder unavailable here. Exported WAV instead.");
+      }
+    }
+
+    function bufferToWav(buffer) {
+      const numOfChan = buffer.numberOfChannels;
+      const length = buffer.length * numOfChan * 2 + 44;
+      const bufferArray = new ArrayBuffer(length);
+      const view = new DataView(bufferArray);
+      const channels = [];
+      let offset = 0;
+      let pos = 0;
+
+      function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+      function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+      // RIFF header
+      setUint32(0x46464952); setUint32(length - 8); setUint32(0x45564157);
+      // fmt
+      setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan);
+      setUint32(buffer.sampleRate); setUint32(buffer.sampleRate * 2 * numOfChan);
+      setUint16(numOfChan * 2); setUint16(16);
+      // data
+      setUint32(0x61746164); setUint32(length - pos - 4);
+
+      for (let i = 0; i < numOfChan; i++) channels.push(buffer.getChannelData(i));
+      while (pos < length) {
+        for (let i = 0; i < numOfChan; i++) {
+          let sample = Math.max(-1, Math.min(1, channels[i][offset] || 0));
+          view.setInt16(pos, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+          pos += 2;
+        }
+        offset++;
+      }
+      return new Blob([bufferArray], { type: "audio/wav" });
+    }
+
+    // ---- FLAC ENCODING (via libflac.js if available) ----
+    async function bufferToFlac(buffer) {
+      // ensure lib is ready
+      if (typeof FLAC === "undefined") return null;
+      if (FLAC.ready) { try { await FLAC.ready; } catch(e){} }
+
+      try {
+        const sampleRate = buffer.sampleRate;
+        const channels = buffer.numberOfChannels;
+        const bps = 16; // encode as 16-bit
+        const totalSamples = buffer.length;
+
+        const ch0 = buffer.getChannelData(0);
+        const ch1 = channels > 1 ? buffer.getChannelData(1) : null;
+        const pcm = new Int32Array(totalSamples * channels); // 32-bit int container (16-bit magnitude)
+        for (let i = 0, j = 0; i < totalSamples; i++) {
+          const s0 = Math.max(-1, Math.min(1, ch0[i])) * 0x7fff; pcm[j++] = s0 | 0;
+          if (channels > 1) { const s1 = Math.max(-1, Math.min(1, ch1[i])) * 0x7fff; pcm[j++] = s1 | 0; }
+        }
+
+        const enc = FLAC.create_libflac_encoder(sampleRate, channels, bps, 5, true, totalSamples);
+        if (!enc) return null;
+
+        const chunks = [];
+        const okInit = FLAC.init_libflac_encoder(enc, (buf, bytes) => {
+          chunks.push(buf.slice(0, bytes));
+        });
+        if (!okInit) { FLAC.destroy_libflac_encoder(enc); return null; }
+
+        const okProc = FLAC.encode_buffer_interleaved(enc, pcm, totalSamples);
+        if (!okProc) { FLAC.destroy_libflac_encoder(enc); return null; }
+
+        FLAC.FLAC__stream_encoder_finish(enc);
+        FLAC.destroy_libflac_encoder(enc);
+        return new Blob(chunks, { type: "audio/flac" });
+      } catch (err) {
+        console.error(err);
+        return null;
+      }
+    }
+    // ----------------------------------------------------
+
+    // number readouts
+    function wireSlider(id, valId, fmt) {
+      const el = byId(id);
+      const update = () => { byId(valId).textContent = fmt(parseFloat(el.value)); };
+      el.addEventListener('input', update);
+      update();
+    }
+    wireSlider('bass','bassVal', v => `${v} dB`);
+    wireSlider('mids','midsVal', v => `${v} dB`);
+    wireSlider('treble','trebleVal', v => `${v} dB`);
+    wireSlider('stereo','stereoVal', v => `${v}`);
+    wireSlider('targetLoudness','targetLoudnessVal', v => `${v} dBFS`);
+    wireSlider('limiterCeiling','limiterCeilingVal', v => `${v} dBFS`);
+    wireSlider('fadeInMs','fadeInVal', v => `${v} ms`);
+    wireSlider('fadeOutMs','fadeOutVal', v => `${v} ms`);
+
+    // transport buttons
+    byId('playBtn').addEventListener('click', playAudio);
+    byId('stopBtn').addEventListener('click', stopAudio);
+    byId('toggleBtn').addEventListener('click', toggleMode);
+    byId('downloadBtn').addEventListener('click', async () => { try { await exportWav(); } catch(e){} });
+  </script>
+<footer style="margin-top:24px;border-top:1px solid rgba(255,255,255,.08);padding:14px 0;color:#c9c9c9;"><div style="max-width:1200px;margin:0 auto;padding:0 12px;text-align:center;font-size:12px;opacity:.9;">© Fenix Studio • <a href="https://fenixstudio.org/" style="color:#c9c9c9;text-decoration:none;">FenixStudio.org</a></div></footer></body>
+</html>
